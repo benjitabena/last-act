@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Adivina el Personaje</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Adivina el Personaje</h1>
+    <div id="imagen-container">
+      <img src="imagen0.png" id="imagen" alt="Personaje a adivinar">
+      <div id="blur-overlay"></div>
+    </div>
+    <label for="respuesta">¿Quién es?</label>
+    <input type="text" id="respuesta" placeholder="Escribe tu respuesta...">
+    <button onclick="verificarRespuesta()">Verificar</button>
+    <p id="resultado"></p>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
