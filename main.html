@@ -1,23 +1,214 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <title>Adivina el Personaje</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juegaso</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        #container {
+            text-align: center;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            border: 2px solid #333;
+        }
+
+        #nav,
+        #footer {
+            background-color: #333;
+            color: #fff;
+            padding: 6px;
+            text-align: center;
+        }
+
+        #barra {
+            display: none;
+            margin-top: 20px;
+        }
+
+        #slider {
+            width: 100%;
+        }
+    </style>
 </head>
+
 <body>
-  <div class="container">
-    <h1>Adivina el Personaje</h1>
-    <div id="imagen-container">
-      <img src="imagen0.png" id="imagen" alt="Personaje a adivinar">
-      <div id="blur-overlay"></div>
+    <div id="nav">
+        <h1>Juegaso</h1>
     </div>
-    <label for="respuesta">¿Quién es?</label>
-    <input type="text" id="respuesta" placeholder="Escribe tu respuesta...">
-    <button onclick="verificarRespuesta()">Verificar</button>
-    <p id="resultado"></p>
-  </div>
-  <script src="script.js"></script>
+
+    <div id="container">
+        <br><button onclick="empezar()">Empezar</button>
+        <button onclick="activarPixelacion()">Activar Barra (-50 puntos)</button>
+        <div id="barra">
+            <label for="slider">Resolución:</label>
+            <input type="range" id="slider" min="1" max="50" value="10" step="1" oninput="cambiarPixelacion()">
+        </div>
+        <br><img id="imgpixelada" src="" alt="Imagen Original" width="250" height="300"><br>
+        <label for="adivinaInput">Adivina el Futbolista:</label>
+        <input type="text" id="adivinaInput" placeholder="Escribe el nombre" disabled>
+        <button onclick="verificacion()">Verificar</button>
+        <div id="imagenesOrdenadas"></div>
+        <p id="puntuacion">Puntuación: 0</p>
+    </div>
+
+    <div id="footer">
+        <p>hecho por lauti</p>
+    </div>
+
+    <script>
+        const imgpixelada = document.getElementById('imgpixelada');
+        const barra = document.getElementById('barra');
+        const slider = document.getElementById('slider');
+
+        let pixeladoactivar = false;
+        let valordelabarra = 10;
+
+        // Restaurar estilos predeterminados
+        function resetStyles() {
+            imgpixelada.style.filter = 'blur(50px)';
+            imgpixelada.style.clipPath = 'none';
+        }
+
+        function cambiarPixelacion() {
+            valordelabarra = slider.value;
+            imgpixelada.style.filter = `blur(${valordelabarra}px)`;
+        }
+
+        function activarPixelacion() {
+            if (!pixeladoactivar) {
+                pixeladoactivar = true;
+                barra.style.display = 'block';
+                puntuacion -= 50;
+                actPuntuacion();
+                resetStyles();
+                cambiarPixelacion();
+            }
+        }
+        const imagenesFutbolistas = [
+            "https://zelda.nintendo.com/tears-of-the-kingdom/_images/features/link-crouching.png",
+            "https://www.giantbomb.com/a/uploads/scale_medium/16/164924/3445907-2936872287-samus.png",
+            "https://1.bp.blogspot.com/-ON_k7s2FqQo/VEojKdFF9sI/AAAAAAAAGjk/SDHp3vMImQw/s1600/Bayonetta_character.png",
+            "https://static.wikia.nocookie.net/heroe/images/b/b9/DanteDMC5.png/revision/latest?cb=20200802194123&path-prefix=es",
+            "https://mario.nintendo.com/static/f350c31adcd6378b913f7660db299714/7e15c/mario.png",
+            "https://static.wikia.nocookie.net/death-battle-en-espanol/images/5/53/Chun-Li.png/revision/latest?cb=20180316170131&path-prefix=es",
+            "https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/bltceaa6cf20d328bd5/5eb7cdc1b1f2e27c950d2aaa/V_AGENTS_587x900_Jett.png",
+            "https://static.wikia.nocookie.net/residentevil/images/c/cc/Jill_Valentine_RE3R.png/revision/latest/scale-to-width/360?cb=20200412050318&path-prefix=es"
+        ];
+
+        const nombres = [
+            "Link",
+            "Samus",
+            "Bayonetta",
+            "Dante",
+            "Mario",
+            "Chun Li",
+            "Jett",
+            "Jill Valentine"
+        ];
+
+        let imagenesMostradas = [];
+        let adivinadas = [];
+        let iniciado = false;
+        let puntuacion = 100;
+
+        function recortarImagen(event) {
+            const imagenRecortada = document.querySelector('#imgpixelada');
+            imagenRecortada.style.filter = 'none';
+            imagenRecortada.style.clipPath = 'none';
+
+            const x = event.clientX - imagenRecortada.offsetLeft;
+            const y = event.clientY - imagenRecortada.offsetTop;
+
+            const tamañoCuadrado = 10;
+
+            imagenRecortada.style.clipPath = `inset(${y - tamañoCuadrado}px ${imagenRecortada.clientWidth - (x + tamañoCuadrado)}px ${imagenRecortada.clientHeight - (y + tamañoCuadrado)}px ${x - tamañoCuadrado}px)`;
+
+            puntuacion = Math.max(0, puntuacion - 10);
+            actPuntuacion();
+
+            setTimeout(() => {
+                imagenRecortada.style.filter = 'blur(50px)';
+                imagenRecortada.style.clipPath = 'none';
+            }, 2000);
+        }
+
+        function empezar() {
+            if (!iniciado) {
+                iniciado = true;
+                if (imagenesMostradas.length === 0) {
+                    puntuacion = 100;
+                }
+                actPuntuacion();
+                cambiarImagen();
+                document.getElementById('adivinaInput').removeAttribute('disabled');
+            }
+        }
+
+        function cambiarImagen() {
+            const imagenesNoMostradas = imagenesFutbolistas.filter(img => !imagenesMostradas.includes(img) && !adivinadas.includes(img));
+
+            if (imagenesNoMostradas.length === 0) {
+                alert("Ya pasaron todas las imágenes");
+                return;
+            }
+
+            pixeladoactivar = false;
+            barra.style.display = 'none';
+
+            const puntuacionInicial = 100;
+            puntuacion = puntuacionInicial;
+            actPuntuacion();
+
+            const siguienteImagen = imagenesNoMostradas[0];
+            const nombre = nombres[imagenesFutbolistas.indexOf(siguienteImagen)];
+            console.log("Jugador actual:", nombre);
+            imgpixelada.src = siguienteImagen;
+
+            resetStyles();
+
+            imgpixelada.addEventListener('click', function (event) {
+                recortarImagen(event);
+            });
+
+            imagenesMostradas.push(siguienteImagen);
+        }
+
+        function verificacion() {
+            const palabra = document.getElementById('adivinaInput').value.trim();
+            const nombre = nombres[imagenesFutbolistas.indexOf(imgpixelada.src)];
+
+            if (palabra.toLowerCase() === nombre.toLowerCase()) {
+                alert("Bien, ganaste 50 puntos");
+                adivinadas.push(imgpixelada.src);
+                puntuacion += 50;
+                actPuntuacion();
+            } else {
+                alert("Incorrecto, intenta de nuevo, pero perdiste 20 puntos");
+                puntuacion = Math.max(0, puntuacion - 20);
+                actPuntuacion();
+            }
+            cambiarImagen();
+        }
+
+        function actPuntuacion() {
+            document.getElementById('puntuacion').innerText = `Puntuación: ${puntuacion}`;
+        }
+
+    </script>
 </body>
+
 </html>
